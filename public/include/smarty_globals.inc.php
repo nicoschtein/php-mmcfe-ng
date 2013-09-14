@@ -18,11 +18,18 @@ if ($bitcoin->can_connect() === true) {
   if (is_array($dDifficulty) && array_key_exists('proof-of-work', $dDifficulty))
     $dDifficulty = $dDifficulty['proof-of-work'];
   try { $dNetworkHashrate = $bitcoin->query('getnetworkhashps') / 1000; } catch (Exception $e) {
-    // Maybe we are SHA
-    try { $dNetworkHashrate = $bitcoin->query('gethashespersec') / 1000; } catch (Exception $e) {
+    //Maybe 'getnetworkhashps' not implemented, use 'getmininginfo'.
+    try {
+      $dNetworkHashrate = $bitcoin->query('getmininginfo');
+      if (is_array($dNetworkHashrate) && array_key_exists('networkhashps', $dNetworkHashrate))
+        $dNetworkHashrate = $dNetworkHashrate['networkhashps'] / 1000;
+    } catch (Exception $e) {
+        // Maybe we are SHA
+        try { $dNetworkHashrate = $bitcoin->query('gethashespersec') / 1000; } catch (Exception $e) {
+          $dNetworkHashrate = 0;
+        }
       $dNetworkHashrate = 0;
     }
-    $dNetworkHashrate = 0;
   }
 } else {
   $dNetworkHashrate = 0;
